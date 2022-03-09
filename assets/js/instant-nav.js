@@ -9,8 +9,9 @@ const links = document.querySelectorAll("a");
       .then((response) => response.text())
       .then((res) => {
         const parser = new DOMParser();
-        const document = parser.parseFromString(res, "text/html");
-        console.log(document);
+        const linkDoc = parser.parseFromString(res, "text/html");
+        const main = document.getElementById("main");
+        main.innerHTML = linkDoc.getElementById("main").innerHTML;
       });
   };
 });
