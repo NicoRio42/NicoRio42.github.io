@@ -14,6 +14,8 @@ function scanLinks() {
             const linkDoc = parser.parseFromString(res, "text/html");
             const main = document.getElementById("main");
             main.innerHTML = linkDoc.getElementById("main").innerHTML;
+            window.scrollTo(0, 0);
+            history.pushState({}, "", link.pathname);
             scanLinks();
           });
       };
