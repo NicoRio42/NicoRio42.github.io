@@ -1,6 +1,5 @@
 ---
 title: Welcome to Jekyll!
-date: {}
 categories:
   - blog
 tags:
