@@ -23,4 +23,8 @@ function scanLinks() {
   });
 }
 
+window.addEventListener('popstate', (event) => {
+  console.log(event);
+});
+
 scanLinks();
