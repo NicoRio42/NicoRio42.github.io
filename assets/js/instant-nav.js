@@ -15,7 +15,7 @@ function scanLinks() {
             const main = document.getElementById("main");
             main.innerHTML = linkDoc.getElementById("main").innerHTML;
             window.scrollTo(0, 0);
-            history.pushState({link: link}, "", link.pathname);
+            history.pushState({link: link.href}, "", link.pathname);
             scanLinks();
           });
       };
