@@ -1,6 +1,6 @@
 backend:
-  name: git-gateway
-  branch: main # Branch to update (optional; defaults to master)
+  name: github
+  repo: NicoRio42/NicoRio42.github.io
 media_folder: "assets/uploads"
 collections:
   - name: "blog"
