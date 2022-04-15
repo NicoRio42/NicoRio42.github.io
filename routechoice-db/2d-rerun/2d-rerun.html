@@ -1,0 +1,1625 @@
+<html class="win firefox firefox9 gecko gecko9">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>2DRerunViewer Offline version</title>
+    <script type="text/javascript">
+      var test = 0;
+      var wheelzoom = 1;
+
+      var isnarrowscreen = 0;
+      var loadcourse = 0;
+      var istouchscreen = 0;
+      var isinternetexplorer = 0;
+      var index_file = "";
+      var simplified_version = 0;
+    </script>
+
+    <script type="text/javascript" src="/2d-rerun/heatmap.js"></script>
+    <script src="/2d-rerun/combined.js" type="text/javascript"></script>
+    <script type="text/javascript" src="/2d-rerun/jquery_002.js"></script>
+    <script type="text/javascript" src="/2d-rerun/jquery_003.js"></script>
+    <script type="text/javascript" src="/2d-rerun/jquery.js"></script>
+    <script src="/2d-rerun/datepickr.js" type="text/javascript"></script>
+    <script type="text/javascript" src="/2d-rerun/CCapture.js"></script>
+    <script type="text/javascript" src="/2d-rerun/Whammy.js"></script>
+    <script type="text/javascript" src="/2d-rerun/gif.js"></script>
+    <script src="/2d-rerun/2drerun.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="/2d-rerun/jquery-ui-1.css" />
+    <!--<link rel="stylesheet" href="dep/2drerun.css"> -->
+    <link rel="stylesheet" href="/2d-rerun/2drerun.css" />
+
+    <!-- Visualization from Google-->
+    <link rel="stylesheet" href="/2d-rerun/datepickr.css" />
+    <link rel="stylesheet" href="/2d-rerun/tooltipster.css" />
+    <link rel="stylesheet" href="/2d-rerun/simplePagination.css" />
+
+    <!--[if IE
+      ]><script type="text/javascript" src="dep/excanvas.js"></script
+    ><![endif]-->
+    <link rel="stylesheet" type="text/css" href="/2d-rerun/jquery.css" />
+    <script type="text/javascript">
+      var mapviewer;
+
+      $(document).ready(function () {
+        if (navigator.userAgent.match(/Android/i)) {
+          istouchscreen = 1;
+        }
+        if (
+          navigator.userAgent.match(/iPhone/i) ||
+          navigator.userAgent.match(/iPod/i) ||
+          navigator.userAgent.match(/iPad/i)
+        ) {
+          istouchscreen = 1;
+        }
+
+        isnarrowscreen = 0;
+        if ($(document).width() < 600) {
+          isnarrowscreen = 1;
+          $("#infobox").height(30);
+        }
+
+        if ($.browser.name == "msie") {
+          $("#infobox").html(
+            "Sorry! Browser not supported! Please use Google Chrome or Firefox!"
+          );
+          isinternetexplorer = 1;
+          mapviewer = new MapViewer("map", "infobox", "rightmenu");
+        } else {
+          $("#infobox").html(
+            "Drag orienteering map and GPX-files to box below to start"
+          );
+          $("#rightmenu").height(
+            $(document).height() - $("#infobox").height() - 8
+          );
+
+          mapviewer = new MapViewer("map", "infobox", "rightmenu");
+          mapviewer.prepareoffline();
+        }
+      });
+    </script>
+  </head>
+  <body style="margin: 0; padding: 0; font-family: Arial">
+    <div
+      id="fulldialog_outer"
+      style="
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: #ffffff;
+        z-index: 2000;
+        text-align: center;
+        display: none;
+      "
+    >
+      <div id="fulldialog_inner" style="overflow-y: scroll; height: 100%">
+        <div
+          id="fulldialog"
+          style="
+            text-align: left;
+            margin-left: 50px;
+            margin-top: 20px;
+            max-width: 1200px;
+          "
+        ></div>
+      </div>
+    </div>
+    <div
+      id="rightmenu"
+      style="
+        display: none;
+        padding: 4px;
+        border-left: 1px solid rgb(136, 136, 136);
+        background: rgb(255, 255, 255) none repeat scroll 0% 0%;
+        color: rgb(0, 0, 0);
+        font-size: 14px;
+        position: absolute;
+        width: 200px;
+        right: 0px;
+        overflow-y: auto;
+        z-index: 10;
+        height: 608px;
+      "
+    >
+      <div id="toprightmenu">
+        <select id="selectmode">
+          <option value="replay">Replay mode</option>
+          <option value="analysis">Split analysis</option>
+          <option value="dotanalysis">Dot analysis</option>
+          <option value="autoanalysis">AutOanalysis</option>
+          <option value="drawcourse">Draw course</option>
+          <option value="analyzecourse">Analyze course</option>
+          <option value="detailedanalysis">DetailedAnalysis</option>
+          <option value="canalysis">O-tech evaluation</option>
+          <option value="calibrate">Map calibration</option>
+          <option value="addroutes" selected="selected">
+            Add routes/Change map
+          </option></select
+        ><select id="playspeedr" style="display: none">
+          <option value="1">1x</option>
+          <option value="2">2x</option>
+          <option value="3">3x</option>
+          <option value="4">4x</option>
+          <option value="5">5x</option>
+          <option value="6">6x</option>
+          <option selected="selected" value="10">10x</option>
+          <option value="20">20x</option>
+          <option value="50">50x</option></select
+        ><select id="realtime" style="display: none">
+          <option value="off" selected="selected">RealTime off</option>
+          <option value="on">RealTime on</option></select
+        ><br />
+        <div id="playcontrol" style="display: none">
+          <button id="backr">&lt;</button><button id="playr">Play/Pause</button
+          ><button id="forwr">&gt;</button
+          ><input type="checkbox" id="replaydots" title="Select for dotmode" />
+        </div>
+        <div id="graphcontrol" style="display: none">
+          <hr />
+          <b>Graphs</b><br /><select name="selectgraph-1" id="selectgraph-1">
+            <option value="0" selected="selected">No graph</option>
+            <option value="1">Time</option>
+            <option value="2">Speed</option>
+            <option value="3">Pace</option>
+            <option value="4">Elevation</option>
+            <option value="101">Pulse</option>
+            <option value="102">Distance from line</option>
+            <option value="103">Extra distance</option>
+          </select>
+          <a
+            href="javascript:void(0);"
+            onclick="mapviewer.graphsettings(0,false);"
+            title="Advanced graph settings for graph 1"
+            ><img src="/2d-rerun/advanced.png" height="15" /></a
+          ><br /><select name="selectgraph-2" id="selectgraph-2">
+            <option value="0" selected="selected">No graph</option>
+            <option value="1">Time</option>
+            <option value="2">Speed</option>
+            <option value="3">Pace</option>
+            <option value="4">Elevation</option>
+            <option value="101">Pulse</option>
+            <option value="102">Distance from line</option>
+            <option value="103">Extra distance</option>
+          </select>
+          <a
+            href="javascript:void(0);"
+            onclick="mapviewer.graphsettings(1,false);"
+            title="Advanced graph settings for graph 2"
+            ><img src="/2d-rerun/advanced.png" height="15" /></a
+          ><br /><select name="selectgraph-3" id="selectgraph-3">
+            <option value="0" selected="selected">No graph</option>
+            <option value="1">Time</option>
+            <option value="2">Speed</option>
+            <option value="3">Pace</option>
+            <option value="4">Elevation</option>
+            <option value="101">Pulse</option>
+            <option value="102">Distance from line</option>
+            <option value="103">Extra distance</option>
+          </select>
+          <a
+            href="javascript:void(0);"
+            onclick="mapviewer.graphsettings(2,false);"
+            title="Advanced graph settings for graph 3"
+            ><img src="/2d-rerun/advanced.png" height="15" /></a
+          ><br /><select name="selectgraph-4" id="selectgraph-4">
+            <option value="0" selected="selected">No graph</option>
+            <option value="1">Time</option>
+            <option value="2">Speed</option>
+            <option value="3">Pace</option>
+            <option value="4">Elevation</option>
+            <option value="101">Pulse</option>
+            <option value="102">Distance from line</option>
+            <option value="103">Extra distance</option>
+          </select>
+          <a
+            href="javascript:void(0);"
+            onclick="mapviewer.graphsettings(3,false);"
+            title="Advanced graph settings for graph 4"
+            ><img src="/2d-rerun/advanced.png" height="15" /></a
+          ><br />
+          <button onclick="mapviewer.doplotcoursegraph();return false;">
+            Plot</button
+          ><br /><font size="1"
+            >»
+            <a href="javascript:void(0);" onclick="mapviewer.toggle_graphs();"
+              >Graphs on/off</a
+            ><br /><font size="1"
+              >»
+              <a
+                href="javascript:void(0);"
+                onclick="mapviewer.exportgraphdata(1);"
+                >Export graph data</a
+              >
+              <a
+                href="javascript:void(0);"
+                onclick="mapviewer.exportgraphdata(2);"
+                >New</a
+              >
+              <a
+                href="javascript:void(0);"
+                onclick="mapviewer.exportgraphdata(3);"
+                >3D</a
+              >
+              <a
+                href="javascript:void(0);"
+                onclick="mapviewer.set_prettygraphsettings();"
+                >.</a
+              >
+              <a
+                href="javascript:void(0);"
+                onclick="mapviewer.ploteleprofile_popup_scaled()"
+                >S</a
+              ><br /><font size="1"
+                >» Graph height:
+                <a
+                  href="javascript:void(0);"
+                  onclick="mapviewer.showBelowFactor=.25;mapviewer.request_redraw();"
+                  >.25</a
+                >
+                <a
+                  href="javascript:void(0);"
+                  onclick="mapviewer.showBelowFactor=.5;mapviewer.request_redraw();"
+                  >.5</a
+                >
+                <a
+                  href="javascript:void(0);"
+                  onclick="mapviewer.showBelowFactor=.75;mapviewer.request_redraw();"
+                  >.75</a
+                >
+                <a
+                  href="javascript:void(0);"
+                  onclick="mapviewer.showBelowFactor=1;mapviewer.request_redraw();"
+                  >1</a
+                ><a
+                  href="javascript:void(0);"
+                  onclick="mapviewer.showBelowFactor=1.5;mapviewer.request_redraw();"
+                  >1.5</a
+                >
+                <a
+                  href="javascript:void(0);"
+                  onclick="mapviewer.showBelowFactor=-1;mapviewer.request_redraw();mapviewer.canvas.width=mapviewer.canvas.width-1;"
+                  >S</a
+                >
+                <a
+                  href="javascript:void(0);"
+                  onclick="mapviewer.showBelowFactor=-2;;mapviewer.canvas.width=mapviewer.canvas.width-1;mapviewer.request_redraw();"
+                  >X</a
+                ><br /></font></font
+          ></font>
+        </div>
+        <div id="xccoursecontrol" style="display: none"></div>
+        <div id="canalysis" style="font-size: 10px; display: none">
+          <h4>Corridor evaluation</h4>
+          <font size="1"
+            >Instructions: 1. Draw a couse along the corridor using 'Draw
+            course' functionality. 2. Selected athletes and parts of the routes
+            to evaluate. 3. Adjust corridor width to fit the actual corridor. 4.
+            Click 'Evaluate corridor'. You can change corridor width and see
+            live updated results without new calculations.</font
+          ><br /><br />
+          <div>
+            <div
+              id="id_changecorrwidth_label"
+              class="tooltip"
+              title="Choose corridor width"
+              style="cursor: help; float: left; width: 70px"
+            >
+              <b>Width</b>
+            </div>
+            <div style="height: 22px; float: left">
+              <a
+                href="javascript:void(0);"
+                class="cbutton"
+                onclick="mapviewer.change_canalysis_setting('corrwidth',-1);"
+                >&lt;</a
+              >
+            </div>
+            <div
+              id="id_changecorrwidth_val"
+              style="float: left; width: 60px; text-align: center"
+            >
+              <b>50 m</b>
+            </div>
+            <div style="height: 22px; float: left">
+              <a
+                href="javascript:void(0);"
+                class="cbutton"
+                onclick="mapviewer.change_canalysis_setting('corrwidth',1);"
+                >&gt;</a
+              >
+            </div>
+          </div>
+          <div style="clear: both"></div>
+          <div style="height:26px;undefined">
+            <div
+              id="id_showcorreval_label"
+              class="tooltip"
+              title="Show/hide corridor evaluation. Only applies when corridor evaluated."
+              style="
+                cursor: help;
+                float: left;
+                width: 70px;
+                position: relative;
+                top: 3px;
+              "
+            >
+              <b>Show eval.</b>
+            </div>
+            <div style="float: left">
+              <div class="onoffswitch">
+                <input
+                  type="checkbox"
+                  name="id_showcorreval"
+                  class="onoffswitch-checkbox"
+                  id="id_showcorreval"
+                  onclick="mapviewer.change_canalysis_setting('corrtoggle')"
+                />
+                <label class="onoffswitch-label" for="id_showcorreval">
+                  <span class="onoffswitch-inner"></span>
+                  <span class="onoffswitch-switch"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div style="clear: both"></div>
+          <button onclick="mapviewer.check_corridors();">
+            Evaluate corridor
+          </button>
+          <button onclick="mapviewer.otech_showresults('corridor');">R</button>
+          <div id="corridor_isworking"></div>
+          <p></p>
+          <hr />
+          <h4>Compass evaluation</h4>
+          <font size="1"
+            >Instructions: 1. Draw the course using the 'Draw course'
+            functionality. 2. Selected athletes and parts of the routes to
+            evaluate. 3. Choose compass evaluation criteria. Minimum offset and
+            angle defines a corridor the athlete has to be within. 4. Click
+            'Evaluate compass'. You need to re-evaluate when you change
+            criteria. Note! If you need to move control points for runners this
+            is done under 'Analyze course'.</font
+          ><br /><br />
+          <div>
+            <div
+              id="id_changecompasswidth_label"
+              class="tooltip"
+              title="Choose minimum width of evaluation corridor for compass evaluation"
+              style="cursor: help; float: left; width: 70px"
+            >
+              <b>Min offset</b>
+            </div>
+            <div style="height: 22px; float: left">
+              <a
+                href="javascript:void(0);"
+                class="cbutton"
+                onclick="mapviewer.change_canalysis_setting('compasswidth',-1);"
+                >&lt;</a
+              >
+            </div>
+            <div
+              id="id_changecompasswidth_val"
+              style="float: left; width: 60px; text-align: center"
+            >
+              <b>25 m</b>
+            </div>
+            <div style="height: 22px; float: left">
+              <a
+                href="javascript:void(0);"
+                class="cbutton"
+                onclick="mapviewer.change_canalysis_setting('compasswidth',1);"
+                >&gt;</a
+              >
+            </div>
+          </div>
+          <div style="clear: both"></div>
+          <div>
+            <div
+              id="id_changecompassangle_label"
+              class="tooltip"
+              title="Choose angle for corridor for compass evaluation"
+              style="cursor: help; float: left; width: 70px"
+            >
+              <b>Angle</b>
+            </div>
+            <div style="height: 22px; float: left">
+              <a
+                href="javascript:void(0);"
+                class="cbutton"
+                onclick="mapviewer.change_canalysis_setting('compassangle',-1);"
+                >&lt;</a
+              >
+            </div>
+            <div
+              id="id_changecompassangle_val"
+              style="float: left; width: 60px; text-align: center"
+            >
+              <b>5 deg</b>
+            </div>
+            <div style="height: 22px; float: left">
+              <a
+                href="javascript:void(0);"
+                class="cbutton"
+                onclick="mapviewer.change_canalysis_setting('compassangle',1);"
+                >&gt;</a
+              >
+            </div>
+          </div>
+          <div style="clear: both"></div>
+          <div id="compass_selectlegsdiv" style="height: 80px"></div>
+          <div style="height:26px;undefined">
+            <div
+              id="id_showcompasseval_label"
+              class="tooltip"
+              title="Show/hide corridor evaluation. Only applies when corridor evaluated."
+              style="
+                cursor: help;
+                float: left;
+                width: 70px;
+                position: relative;
+                top: 3px;
+              "
+            >
+              <b>Show eval.</b>
+            </div>
+            <div style="float: left">
+              <div class="onoffswitch">
+                <input
+                  type="checkbox"
+                  name="id_showcompasseval"
+                  class="onoffswitch-checkbox"
+                  id="id_showcompasseval"
+                  onclick="mapviewer.change_canalysis_setting('compasstoggle')"
+                />
+                <label class="onoffswitch-label" for="id_showcompasseval">
+                  <span class="onoffswitch-inner"></span>
+                  <span class="onoffswitch-switch"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div style="clear: both"></div>
+          <div style="height:26px;undefined">
+            <div
+              id="id_showcompasssplits_label"
+              class="tooltip"
+              title="Show/hide identified controls used for analysis. Positions must be changed under 'Analyze course'"
+              style="
+                cursor: help;
+                float: left;
+                width: 70px;
+                position: relative;
+                top: 3px;
+              "
+            >
+              <b>Show splitpos</b>
+            </div>
+            <div style="float: left">
+              <div class="onoffswitch">
+                <input
+                  type="checkbox"
+                  name="id_showcompasssplits"
+                  class="onoffswitch-checkbox"
+                  id="id_showcompasssplits"
+                  onclick="mapviewer.change_canalysis_setting('compasssplits')"
+                />
+                <label class="onoffswitch-label" for="id_showcompasssplits">
+                  <span class="onoffswitch-inner"></span>
+                  <span class="onoffswitch-switch"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div style="clear: both"></div>
+          <button onclick="mapviewer.check_compasses();">
+            Evaluate compass
+          </button>
+          <button onclick="mapviewer.otech_showresults('compass');">R</button>
+          <div id="compass_isworking"></div>
+          <p></p>
+        </div>
+        <button
+          id="autobutton"
+          style="display: none"
+          title="Calculate autOanalysis for two different routes. Default: Same routechoices are defined by 10 meters difference. Max length of parts with equal routes is set to 30 seconds. You can change this in the settings with keyboard press 2."
+        >
+          Calculate AutOanalysis
+        </button>
+        <div id="autoanalysis_adjust" style="display: none">
+          <b>Adjust:</b>
+          <select id="autoanalysis_adjust_ch">
+            <option selected="selected" value="0">None</option>
+            <option value="1">By same route</option>
+            <option value="2">By all route</option>
+            <option value="3">Show different</option>
+            <option value="4">Show significant</option>
+            <option value="5">Show significant+</option>
+            <option value="6">Show pace (exp)</option>
+            <option value="7">Show pacetxt (exp)</option>
+          </select>
+        </div>
+        <div id="detailedanalysis_settings" style="display: none">
+          Detailed analysis options
+        </div>
+        <div id="autoanalysis_adjust2" style="display: none">
+          <b>Show:</b>
+          <select id="autoanalysis_adjust_ch2">
+            <option value="lg-15">Loss/Gain&gt;15 s</option>
+            <option selected="selected" value="lg-30">Loss/Gain&gt;30 s</option>
+            <option value="lg-60">Loss/Gain&gt;60 s</option>
+            <option value="lg-90">Loss/Gain&gt;90 s</option>
+            <option value="lg-120">Loss/Gain&gt;120 s</option>
+            <option value="l-15">Loss&gt;15 s</option>
+            <option value="l-30">Loss&gt;30 s</option>
+            <option value="l-60">Loss&gt;60 s</option>
+            <option value="l-90">Loss&gt;90 s</option>
+            <option value="l-120">Loss&gt;120 s</option>
+            <option value="g-15">Gain&gt;15 s</option>
+            <option value="g-30">Gain&gt;30 s</option>
+            <option value="g-60">Gain&gt;60 s</option>
+            <option value="g-90">Gain&gt;90 s</option>
+            <option value="g-120">Gain&gt;120 s</option>
+          </select>
+        </div>
+      </div>
+      <div id="addroutediv" style="display: block">
+        <div id="search3drerun" style="display: none">
+          <b>Search 3DRerun</b><br /><font size="1"
+            >Search for routes/maps in this area.</font
+          ><br /><select id="addroutestype">
+            <option value="routes" selected="selected">Routes</option>
+            <option value="maps">Maps</option></select
+          ><br /><select id="addroutesdate">
+            <option value="any" selected="selected">Any date</option></select
+          ><br /><font size="1">Free text (can be empty)</font><br /><input
+            id="addroutestxt"
+            size="20"
+          /><button onclick="mapviewer.addroutesfrombutton();">
+            Search 3DRerun</button
+          ><br />
+          <hr />
+          <div id="addroutes"></div>
+        </div>
+        <hr />
+        <b>From harddisk</b><br /><font size="1"
+          >Choose routes to add and/or map to replace current map.</font
+        ><br />
+        <form style="display: none">
+          <input
+            type="file"
+            id="fileinput"
+            accept=".gpx"
+            multiple=""
+            style="display: none"
+          />
+        </form>
+        <button onclick="$('#fileinput').trigger('click');">Browse</button
+        ><br />
+        <hr />
+        <div id="setscalediv">
+          <hr />
+          <h4>Set Scale/DPI</h4>
+          <font size="1"
+            >Set scale and DPI to get correct course/route lengths. Tip: If you
+            are not sure about the DPI, draw a course with known length and
+            change DPI until the length fits.<br
+          /></font>
+          <table cellpadding="1">
+            <tbody>
+              <tr>
+                <td>
+                  <font size="1"><b>Scale:</b></font>
+                </td>
+                <td><input size="6" id="mapscale" value="10000" /></td>
+              </tr>
+              <tr>
+                <td>
+                  <font size="1"><b>DPI:</b></font>
+                </td>
+                <td><input size="6" id="dpi" value="300" /></td>
+              </tr>
+            </tbody>
+          </table>
+          <button onclick="mapviewer.setdpiscale_frominput();">
+            Set Scale/DPI
+          </button>
+        </div>
+        <font size="1" color="#ff0000"
+          >Warning! Setting scale/DPI for an already calibrated map will remove
+          the calibration and place the map in a different place. All lengths
+          for routes in course planning mode will then be wrong.</font
+        >
+      </div>
+      <div id="routemenu" style="display: none">
+        <hr />
+        <div style="padding-bottom: 4px"><b>Choose athletes</b></div>
+        <button id="showa">All</button><button id="shown">None</button>
+      </div>
+      <div id="routedesc"></div>
+      <div id="infobottomdiv">
+        <div class="bottomtitle2">Settings</div>
+        <div>
+          <div
+            id="taillengthbutt_label"
+            class="tooltip tooltipstered"
+            style="cursor: help; float: left; width: 70px"
+          >
+            <b
+              >Tail [<a
+                title="Set zero tail length (no tails)"
+                href="javascript:void(0);"
+                onclick="mapviewer.set_tail_length(0);"
+                >0</a
+              >/<a
+                title="Set infinity tail length."
+                href="javascript:void(0);"
+                onclick="mapviewer.set_tail_length(999*60);"
+                >Max</a
+              >]</b
+            >
+          </div>
+          <div style="height: 22px; float: left">
+            <a
+              href="javascript:void(0);"
+              class="cbutton"
+              onclick="mapviewer.keypress('R')"
+              >&lt;</a
+            >
+          </div>
+          <div
+            id="taillengthbutt_val"
+            style="float: left; width: 60px; text-align: center"
+          >
+            <b>1:00</b>
+          </div>
+          <div style="height: 22px; float: left">
+            <a
+              href="javascript:void(0);"
+              class="cbutton"
+              onclick="mapviewer.keypress('T')"
+              >&gt;</a
+            >
+          </div>
+        </div>
+        <div style="clear: both"></div>
+        <div>
+          <div
+            id="linewidthbutt_label"
+            class="tooltip tooltipstered"
+            style="cursor: help; float: left; width: 70px"
+          >
+            <b>Line width</b>
+          </div>
+          <div style="height: 22px; float: left">
+            <a
+              href="javascript:void(0);"
+              class="cbutton"
+              onclick="mapviewer.keypress('K')"
+              >&lt;</a
+            >
+          </div>
+          <div
+            id="linewidthbutt_val"
+            style="float: left; width: 60px; text-align: center"
+          >
+            <b>7 px</b>
+          </div>
+          <div style="height: 22px; float: left">
+            <a
+              href="javascript:void(0);"
+              class="cbutton"
+              onclick="mapviewer.keypress('L')"
+              >&gt;</a
+            >
+          </div>
+        </div>
+        <div style="clear: both"></div>
+        <div>
+          <div
+            id="mapopacitybutt_label"
+            class="tooltip tooltipstered"
+            style="cursor: help; float: left; width: 70px"
+          >
+            <b>Map opacity</b>
+          </div>
+          <div style="height: 22px; float: left">
+            <a
+              href="javascript:void(0);"
+              class="cbutton"
+              onclick="mapviewer.keypress('8')"
+              >&lt;</a
+            >
+          </div>
+          <div
+            id="mapopacitybutt_val"
+            style="float: left; width: 60px; text-align: center"
+          >
+            <b>100 %</b>
+          </div>
+          <div style="height: 22px; float: left">
+            <a
+              href="javascript:void(0);"
+              class="cbutton"
+              onclick="mapviewer.keypress('9')"
+              >&gt;</a
+            >
+          </div>
+        </div>
+        <div style="clear: both"></div>
+        <div>
+          <div
+            id="lineopacitybutt_label"
+            class="tooltip tooltipstered"
+            style="cursor: help; float: left; width: 70px"
+          >
+            <b>Route opacity</b>
+          </div>
+          <div style="height: 22px; float: left">
+            <a
+              href="javascript:void(0);"
+              class="cbutton"
+              onclick="mapviewer.reducerouteopacity();"
+              >&lt;</a
+            >
+          </div>
+          <div
+            id="lineopacitybutt_val"
+            style="float: left; width: 60px; text-align: center"
+          >
+            <b>70 %</b>
+          </div>
+          <div style="height: 22px; float: left">
+            <a
+              href="javascript:void(0);"
+              class="cbutton"
+              onclick="mapviewer.increaserouteopacity();"
+              >&gt;</a
+            >
+          </div>
+        </div>
+        <div style="clear: both"></div>
+        <div>
+          <div
+            id="legendposbutt_label"
+            class="tooltip tooltipstered"
+            style="cursor: help; float: left; width: 70px"
+          >
+            <b>Label pos</b>
+          </div>
+          <div style="height: 22px; float: left">
+            <a
+              href="javascript:void(0);"
+              class="cbutton"
+              onclick="mapviewer.change_legendtype(-1);"
+              >&lt;</a
+            >
+          </div>
+          <div
+            id="legendposbutt_val"
+            style="float: left; width: 60px; text-align: center"
+          >
+            <b>Route</b>
+          </div>
+          <div style="height: 22px; float: left">
+            <a
+              href="javascript:void(0);"
+              class="cbutton"
+              onclick="mapviewer.change_legendtype(1);"
+              >&gt;</a
+            >
+          </div>
+        </div>
+        <div style="clear: both"></div>
+        <div>
+          <div
+            id="legendinfobutt_label"
+            class="tooltip tooltipstered"
+            style="cursor: help; float: left; width: 70px"
+          >
+            <b>Label info</b>
+          </div>
+          <div style="height: 22px; float: left">
+            <a
+              href="javascript:void(0);"
+              class="cbutton"
+              onclick="mapviewer.change_legendinfo(-1);"
+              >&lt;</a
+            >
+          </div>
+          <div
+            id="legendinfobutt_val"
+            style="float: left; width: 60px; text-align: center"
+          >
+            <b>NLP</b>
+          </div>
+          <div style="height: 22px; float: left">
+            <a
+              href="javascript:void(0);"
+              class="cbutton"
+              onclick="mapviewer.change_legendinfo(1);"
+              >&gt;</a
+            >
+          </div>
+        </div>
+        <div style="clear: both"></div>
+        <div>
+          <div
+            id="colormodebutt_label"
+            class="tooltip tooltipstered"
+            style="cursor: help; float: left; width: 70px"
+          >
+            <b>Color mode</b>
+          </div>
+          <div style="height: 22px; float: left">
+            <a
+              href="javascript:void(0);"
+              class="cbutton"
+              onclick="mapviewer.toggleColormode(-1);"
+              >&lt;</a
+            >
+          </div>
+          <div
+            id="colormodebutt_val"
+            style="float: left; width: 60px; text-align: center"
+          >
+            <b>Normal</b>
+          </div>
+          <div style="height: 22px; float: left">
+            <a
+              href="javascript:void(0);"
+              class="cbutton"
+              onclick="mapviewer.toggleColormode(1);"
+              >&gt;</a
+            >
+          </div>
+        </div>
+        <div style="clear: both"></div>
+        <div>
+          <div
+            id="coloranalysisbutt_label"
+            class="tooltip tooltipstered"
+            style="cursor: help; float: left; width: 70px"
+          >
+            <b>ColorAnalysis</b>
+          </div>
+          <div style="height: 22px; float: left">
+            <a
+              href="javascript:void(0);"
+              class="cbutton"
+              onclick="mapviewer.toggleColorAnalysismode(-1);"
+              >&lt;</a
+            >
+          </div>
+          <div
+            id="coloranalysisbutt_val"
+            style="float: left; width: 60px; text-align: center"
+          >
+            <b>-</b>
+          </div>
+          <div style="height: 22px; float: left">
+            <a
+              href="javascript:void(0);"
+              class="cbutton"
+              onclick="mapviewer.toggleColorAnalysismode(1);"
+              >&gt;</a
+            >
+          </div>
+        </div>
+        <div style="clear: both"></div>
+        <div>
+          <div
+            id="dotstepbutt_label"
+            class="tooltip tooltipstered"
+            style="cursor: help; float: left; width: 70px"
+          >
+            <b>Dot step</b>
+          </div>
+          <div style="height: 22px; float: left">
+            <a
+              href="javascript:void(0);"
+              class="cbutton"
+              onclick="mapviewer.change_dotstep(-1);"
+              >&lt;</a
+            >
+          </div>
+          <div
+            id="dotstepbutt_val"
+            style="float: left; width: 60px; text-align: center"
+          >
+            <b>3 s</b>
+          </div>
+          <div style="height: 22px; float: left">
+            <a
+              href="javascript:void(0);"
+              class="cbutton"
+              onclick="mapviewer.change_dotstep(+1);"
+              >&gt;</a
+            >
+          </div>
+        </div>
+        <div style="clear: both"></div>
+        <div style="height:26px;undefined">
+          <div
+            id="id_showcourse_label"
+            class="tooltip tooltipstered"
+            style="
+              cursor: help;
+              float: left;
+              width: 70px;
+              position: relative;
+              top: 3px;
+            "
+          >
+            <b>Show course</b>
+          </div>
+          <div style="float: left">
+            <div class="onoffswitch">
+              <input
+                type="checkbox"
+                name="id_showcourse"
+                class="onoffswitch-checkbox"
+                id="id_showcourse"
+                onclick="if (mapviewer.settings.showcourse==0) {mapviewer.settings.showcourse=1;} else {mapviewer.settings.showcourse=0}; mapviewer.request_redraw();mapviewer.showcoursebutt_check();"
+                checked="checked"
+              />
+              <label class="onoffswitch-label" for="id_showcourse">
+                <span class="onoffswitch-inner"></span>
+                <span class="onoffswitch-switch"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div style="clear: both"></div>
+        <div style="height:26px;undefined">
+          <div
+            id="id_autocenter_label"
+            class="tooltip tooltipstered"
+            style="
+              cursor: help;
+              float: left;
+              width: 70px;
+              position: relative;
+              top: 3px;
+            "
+          >
+            <b>AutoCenter</b>
+          </div>
+          <div style="float: left">
+            <div class="onoffswitch">
+              <input
+                type="checkbox"
+                name="id_autocenter"
+                class="onoffswitch-checkbox"
+                id="id_autocenter"
+                onclick="mapviewer.keypress('C')"
+              />
+              <label class="onoffswitch-label" for="id_autocenter">
+                <span class="onoffswitch-inner"></span>
+                <span class="onoffswitch-switch"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div style="clear: both"></div>
+        <div>
+          <div
+            id="centerrunnerbutt_label"
+            class="tooltip tooltipstered"
+            style="cursor: help; float: left; width: 70px"
+          >
+            <b>CenterRunner</b>
+          </div>
+          <div style="height: 22px; float: left">
+            <a
+              href="javascript:void(0);"
+              class="cbutton"
+              onclick="mapviewer.keypress('B')"
+              >&lt;</a
+            >
+          </div>
+          <div
+            id="centerrunnerbutt_val"
+            style="float: left; width: 60px; text-align: center"
+          >
+            <b>-</b>
+          </div>
+          <div style="height: 22px; float: left">
+            <a
+              href="javascript:void(0);"
+              class="cbutton"
+              onclick="mapviewer.keypress('V')"
+              >&gt;</a
+            >
+          </div>
+        </div>
+        <div style="clear: both"></div>
+        <div>
+          <div
+            id="autorotanglebutt_label"
+            class="tooltip tooltipstered"
+            style="cursor: help; float: left; width: 70px"
+          >
+            <b>AutRot angle</b>
+          </div>
+          <div style="height: 22px; float: left">
+            <a
+              href="javascript:void(0);"
+              class="cbutton"
+              onclick="mapviewer.change_autrotangle(-1);"
+              >&lt;</a
+            >
+          </div>
+          <div
+            id="autorotanglebutt_val"
+            style="float: left; width: 60px; text-align: center"
+          >
+            <b>Vertical</b>
+          </div>
+          <div style="height: 22px; float: left">
+            <a
+              href="javascript:void(0);"
+              class="cbutton"
+              onclick="mapviewer.change_autrotangle(1);"
+              >&gt;</a
+            >
+          </div>
+        </div>
+        <div style="clear: both"></div>
+        <div style="height:26px;undefined">
+          <div
+            id="id_timeslider_label"
+            class="tooltip tooltipstered"
+            style="
+              cursor: help;
+              float: left;
+              width: 70px;
+              position: relative;
+              top: 3px;
+            "
+          >
+            <b>Time slider</b>
+          </div>
+          <div style="float: left">
+            <div class="onoffswitch">
+              <input
+                type="checkbox"
+                name="id_timeslider"
+                class="onoffswitch-checkbox"
+                id="id_timeslider"
+                onclick="mapviewer.toggle_timeslider()"
+              />
+              <label class="onoffswitch-label" for="id_timeslider">
+                <span class="onoffswitch-inner"></span>
+                <span class="onoffswitch-switch"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div style="clear: both"></div>
+        <div style="height:26px;undefined">
+          <div
+            id="id_groupreplaymode_label"
+            class="tooltip tooltipstered"
+            style="
+              cursor: help;
+              float: left;
+              width: 70px;
+              position: relative;
+              top: 3px;
+            "
+          >
+            <b>GroupReplay</b>
+          </div>
+          <div style="float: left">
+            <div class="onoffswitch">
+              <input
+                type="checkbox"
+                name="id_groupreplaymode"
+                class="onoffswitch-checkbox"
+                id="id_groupreplaymode"
+                onclick="mapviewer.grouping_toggle()"
+              />
+              <label class="onoffswitch-label" for="id_groupreplaymode">
+                <span class="onoffswitch-inner"></span>
+                <span class="onoffswitch-switch"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div style="clear: both"></div>
+        <div style="height:26px;undefined">
+          <div
+            id="id_sketchmode_label"
+            class="tooltip tooltipstered"
+            style="
+              cursor: help;
+              float: left;
+              width: 70px;
+              position: relative;
+              top: 3px;
+            "
+          >
+            <b>SketchMode</b>
+          </div>
+          <div style="float: left">
+            <div class="onoffswitch">
+              <input
+                type="checkbox"
+                name="id_sketchmode"
+                class="onoffswitch-checkbox"
+                id="id_sketchmode"
+                onclick="mapviewer.sketchmode_toggle()"
+              />
+              <label class="onoffswitch-label" for="id_sketchmode">
+                <span class="onoffswitch-inner"></span>
+                <span class="onoffswitch-switch"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div style="clear: both"></div>
+        <div
+          style="
+            border-top: 1px solid #080;
+            border-bottom: 1px solid #080;
+            padding-top: 5px;
+            padding-bottom: 5px;
+            background: #ddd;
+            display: none;
+          "
+          id="sketch_settings_id"
+        >
+          <div style="height:26px;undefined">
+            <div
+              id="id_sketchmode_start_label"
+              class="tooltip tooltipstered"
+              style="
+                cursor: help;
+                float: left;
+                width: 70px;
+                position: relative;
+                top: 3px;
+              "
+            >
+              <b>DrawSketch</b>
+            </div>
+            <div style="float: left">
+              <div class="onoffswitch">
+                <input
+                  type="checkbox"
+                  name="id_sketchmode_start"
+                  class="onoffswitch-checkbox"
+                  id="id_sketchmode_start"
+                  onclick="mapviewer.sketchmode_startstopsketch()"
+                />
+                <label class="onoffswitch-label" for="id_sketchmode_start">
+                  <span class="onoffswitch-inner"></span>
+                  <span class="onoffswitch-switch"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div style="clear: both"></div>
+          <div>
+            <div
+              id="brushsizebutt_label"
+              class="tooltip tooltipstered"
+              style="cursor: help; float: left; width: 70px"
+            >
+              <b>Sketch size</b>
+            </div>
+            <div style="height: 22px; float: left">
+              <a
+                href="javascript:void(0);"
+                class="cbutton"
+                onclick="mapviewer.sketchmode_brushsize(-1);"
+                >&lt;</a
+              >
+            </div>
+            <div
+              id="brushsizebutt_val"
+              style="float: left; width: 60px; text-align: center"
+            >
+              <b>10 px</b>
+            </div>
+            <div style="height: 22px; float: left">
+              <a
+                href="javascript:void(0);"
+                class="cbutton"
+                onclick="mapviewer.sketchmode_brushsize(1);"
+                >&gt;</a
+              >
+            </div>
+          </div>
+          <div style="clear: both"></div>
+          <div>
+            <div
+              id="sketchmodesetbutt_label"
+              class="tooltip tooltipstered"
+              style="cursor: help; float: left; width: 70px"
+            >
+              <b>Sketch mode</b>
+            </div>
+            <div style="height: 22px; float: left">
+              <a
+                href="javascript:void(0);"
+                class="cbutton"
+                onclick="mapviewer.sketchmode_setmode(-1);"
+                >&lt;</a
+              >
+            </div>
+            <div
+              id="sketchmodesetbutt_val"
+              style="float: left; width: 60px; text-align: center"
+            >
+              <b>Highlight</b>
+            </div>
+            <div style="height: 22px; float: left">
+              <a
+                href="javascript:void(0);"
+                class="cbutton"
+                onclick="mapviewer.sketchmode_setmode(1);"
+                >&gt;</a
+              >
+            </div>
+          </div>
+          <div style="clear: both"></div>
+        </div>
+        <div style="height:26px;undefined">
+          <div
+            id="id_maprot_label"
+            class="tooltip tooltipstered"
+            style="
+              cursor: help;
+              float: left;
+              width: 70px;
+              position: relative;
+              top: 3px;
+            "
+          >
+            <b
+              >Map rot [<a
+                href="javascript:void(0);"
+                onclick="mapviewer.toggle_rotation(1);"
+                >0deg</a
+              >]</b
+            >
+          </div>
+          <div style="float: left">
+            <div class="onoffswitch">
+              <input
+                type="checkbox"
+                name="id_maprot"
+                class="onoffswitch-checkbox"
+                id="id_maprot"
+                onclick="mapviewer.toggle_rotation()"
+              />
+              <label class="onoffswitch-label" for="id_maprot">
+                <span class="onoffswitch-inner"></span>
+                <span class="onoffswitch-switch"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div style="clear: both"></div>
+        <div
+          id="changefontsize_select_label"
+          class="tooltip tooltipstered"
+          style="
+            cursor: help;
+            float: left;
+            font-size: 10px;
+            font-weight: normal;
+            margin-top: 4px;
+            width: 70px;
+          "
+        >
+          <b>Font size</b>
+        </div>
+        <div style="height: 26px">
+          <select id="changefontsize_select">
+            <option value="6">6</option>
+            <option value="8">8</option>
+            <option value="10">10</option>
+            <option value="12">12</option>
+            <option value="14">14</option>
+            <option value="16">16</option>
+            <option value="18">18</option>
+            <option value="20" selected="selected">20</option>
+            <option value="22">22</option>
+            <option value="24">24</option>
+            <option value="26">26</option>
+            <option value="28">28</option>
+            <option value="30">30</option>
+            <option value="35">35</option>
+            <option value="40">40</option>
+            <option value="45">45</option>
+            <option value="50">50</option>
+            <option value="60">60</option>
+            <option value="70">70</option>
+            <option value="80">80</option>
+            <option value="90">90</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+        <div style="clear: both"></div>
+        <button id="advancedoptions">Advanced options</button><br />
+        <hr />
+        Use
+        <a
+          class="tooltip tooltipstered"
+          onclick="mapviewer.keypress('S')"
+          style="cursor: pointer; color: rgb(0, 0, 255); font-weight: bold"
+          >S</a
+        >
+        to save analysis state<br />Use
+        <a
+          title=""
+          onclick="mapviewer.keypress('Q')"
+          style="cursor: pointer; color: rgb(0, 0, 255); font-weight: bold"
+          >Q</a
+        >
+        to show splitsbrowser for autO<br />Use
+        <a
+          title=""
+          onclick="mapviewer.keypress('0')"
+          style="cursor: pointer; color: rgb(0, 0, 255); font-weight: bold"
+          >0</a
+        >
+        to show all complete routes<br />Use
+        <a
+          title=""
+          onclick="mapviewer.keypress('1')"
+          style="cursor: pointer; color: rgb(0, 0, 255); font-weight: bold"
+          >1</a
+        >
+        to show pace graph<br />Use
+        <a
+          title=""
+          onclick="mapviewer.keypress('4')"
+          style="cursor: pointer; color: rgb(0, 0, 255); font-weight: bold"
+          >4</a
+        >
+        /
+        <a
+          title=""
+          onclick="mapviewer.keypress('5')"
+          style="cursor: pointer; color: rgb(0, 0, 255); font-weight: bold"
+          >5</a
+        >
+        to show tag overview<br />Use
+        <a
+          title=""
+          onclick="mapviewer.keypress('6')"
+          style="cursor: pointer; color: rgb(0, 0, 255); font-weight: bold"
+          >6</a
+        >
+        to show/hide tags<br />Use
+        <a
+          title=""
+          onclick="mapviewer.keypress('7')"
+          style="cursor: pointer; color: rgb(0, 0, 255); font-weight: bold"
+          >7</a
+        >
+        to toggle annotation mode<br />Use
+        <a
+          title=""
+          onclick="mapviewer.keypress('W')"
+          style="cursor: pointer; color: rgb(0, 0, 255); font-weight: bold"
+          >W</a
+        >
+        to show splits table (exp)<br />Use
+        <a
+          title=""
+          onclick="mapviewer.keypress('H')"
+          style="cursor: pointer; color: rgb(0, 0, 255); font-weight: bold"
+          >H</a
+        >
+        for HeadCam analysis (exp)<br />Use SHIFT+R to recalibrate map (exp)<br />Experimental
+        replay autorotate:<br /><a
+          title=""
+          onclick="mapviewer.settings.modes.replay_autorotate=0;"
+          style="cursor: pointer; color: rgb(0, 0, 255); font-weight: bold"
+          >Off</a
+        >
+        /
+        <a
+          title=""
+          onclick="mapviewer.settings.modes.replay_autorotate=1;if (mapviewer.center_map_on_runner==0) {mapviewer.keypress('C')} "
+          style="cursor: pointer; color: rgb(0, 0, 255); font-weight: bold"
+          >Rotate runner</a
+        >
+        /
+        <a
+          title=""
+          onclick="mapviewer.settings.modes.replay_autorotate=2;if (mapviewer.center_map_on_runner==0) {mapviewer.keypress('C')}"
+          style="cursor: pointer; color: rgb(0, 0, 255); font-weight: bold"
+          >Rotate leg</a
+        >Use
+        <a
+          title=""
+          onclick="mapviewer.keypress('0')"
+          style="cursor: pointer; color: rgb(0, 0, 255); font-weight: bold"
+          >0</a
+        >
+        to show all complete routes<br /><button id="togglesaveanimbutt">
+          S
+        </button>
+        <hr />
+        <br /><a
+          href="javascript:void(0)"
+          onclick="find_where_others_better()"
+          style="cursor: pointer; color: rgb(0, 0, 255); font-weight: bold"
+          >OB</a
+        >
+        <a
+          href="javascript:void(0)"
+          onclick="find_where_others_better_off()"
+          style="cursor: pointer; color: rgb(0, 0, 255); font-weight: bold"
+          >OB-end</a
+        >
+        <a
+          href="javascript:void(0)"
+          onclick="mapviewer.showeleprofiles(0);"
+          style="cursor: pointer; color: rgb(0, 0, 255); font-weight: bold"
+          >Eleprofile</a
+        >
+        <a
+          href="javascript:void(0)"
+          onclick="mapviewer.lengthtab();"
+          style="cursor: pointer; color: rgb(0, 0, 255); font-weight: bold"
+          >LenTab</a
+        >
+        <hr />
+        <h4>Store &amp; view situations</h4>
+        Store situations to view later. Will be erased when reloading page.<br /><input
+          type="text"
+          id="storestate_name"
+        /><br /><button id="storestate">Store</button>
+        <hr />
+        <div id="choosestatediv"></div>
+        <button id="showleg">Show</button><button id="replayleg">Replay</button>
+      </div>
+      <div id="xinfodiv"></div>
+    </div>
+    <div id="mapholder">
+      <canvas id="map" width="1348" height="608"></canvas>
+    </div>
+    <div id="graphholder" style="display: none"></div>
+    <div
+      id="realtimesliderdiv"
+      style="
+        position: absolute;
+        width: 1148px;
+        bottom: 0px;
+        left: 0px;
+        padding-right: 10px;
+        background: rgb(255, 255, 255) none repeat scroll 0% 0%;
+        display: none;
+      "
+    >
+      <input
+        id="realtimeslider"
+        onchange="mapviewer.realtimeslide();"
+        oninput="mapviewer.realtimeslide();"
+        type="range"
+        min="1e+99"
+        max="-1e+99"
+        style="width: 100%"
+        value="1e+99"
+      />
+    </div>
+    <!-- onChange="showVal(this.value)" -->
+
+    <div
+      style="
+        display: none;
+        z-index: 1001;
+        outline: currentcolor none 0px;
+        position: absolute;
+        height: auto;
+        width: 300px;
+        top: 242px;
+        left: 521px;
+      "
+      class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-draggable ui-resizable"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="ui-dialog-title-videodialog"
+    >
+      <div
+        class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix"
+      >
+        <span class="ui-dialog-title" id="ui-dialog-title-videodialog"
+          >Video</span
+        ><a
+          href="#"
+          class="ui-dialog-titlebar-close ui-corner-all"
+          role="button"
+          ><span class="ui-icon ui-icon-closethick">close</span></a
+        >
+      </div>
+      <div
+        id="videodialog"
+        style="width: auto; min-height: 97.4px; height: auto"
+        class="ui-dialog-content ui-widget-content"
+        scrolltop="0"
+        scrollleft="0"
+      ></div>
+      <div class="ui-resizable-handle ui-resizable-n"></div>
+      <div class="ui-resizable-handle ui-resizable-e"></div>
+      <div class="ui-resizable-handle ui-resizable-s"></div>
+      <div class="ui-resizable-handle ui-resizable-w"></div>
+      <div
+        class="ui-resizable-handle ui-resizable-se ui-icon ui-icon-gripsmall-diagonal-se ui-icon-grip-diagonal-se"
+        style="z-index: 1001"
+      ></div>
+      <div
+        class="ui-resizable-handle ui-resizable-sw"
+        style="z-index: 1002"
+      ></div>
+      <div
+        class="ui-resizable-handle ui-resizable-ne"
+        style="z-index: 1003"
+      ></div>
+      <div
+        class="ui-resizable-handle ui-resizable-nw"
+        style="z-index: 1004"
+      ></div>
+    </div>
+    <div
+      style="
+        display: none;
+        z-index: 1002;
+        outline: currentcolor none 0px;
+        position: absolute;
+        height: auto;
+        width: 300px;
+        top: 242px;
+        left: 521px;
+      "
+      class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-draggable ui-resizable"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="ui-dialog-title-dialog"
+    >
+      <div
+        class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix"
+      >
+        <span class="ui-dialog-title" id="ui-dialog-title-dialog"
+          >Dialog box</span
+        ><a
+          href="#"
+          class="ui-dialog-titlebar-close ui-corner-all"
+          role="button"
+          ><span class="ui-icon ui-icon-closethick">close</span></a
+        >
+      </div>
+      <div
+        id="dialog"
+        style="width: auto; min-height: 97.4px; height: auto"
+        class="ui-dialog-content ui-widget-content"
+        scrolltop="0"
+        scrollleft="0"
+      ></div>
+      <div class="ui-resizable-handle ui-resizable-n"></div>
+      <div class="ui-resizable-handle ui-resizable-e"></div>
+      <div class="ui-resizable-handle ui-resizable-s"></div>
+      <div class="ui-resizable-handle ui-resizable-w"></div>
+      <div
+        class="ui-resizable-handle ui-resizable-se ui-icon ui-icon-gripsmall-diagonal-se ui-icon-grip-diagonal-se"
+        style="z-index: 1001"
+      ></div>
+      <div
+        class="ui-resizable-handle ui-resizable-sw"
+        style="z-index: 1002"
+      ></div>
+      <div
+        class="ui-resizable-handle ui-resizable-ne"
+        style="z-index: 1003"
+      ></div>
+      <div
+        class="ui-resizable-handle ui-resizable-nw"
+        style="z-index: 1004"
+      ></div>
+    </div>
+  </body>
+</html>
